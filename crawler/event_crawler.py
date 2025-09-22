@@ -48,6 +48,7 @@ class EventCrawler:
                 link.get_attribute("href")
                 for link in self.driver.find_elements(By.CLASS_NAME, "go")
             ]
+
             if not event_links:
                 break  # 더 이상 페이지 없음
 
@@ -74,6 +75,7 @@ class EventCrawler:
 
         # 상세정보 (dl > dt/dd 구조)
         details = {}
+        local_no = None
         start_date, end_date, start_time, end_time = None, None, None, None
         rows = d.find_elements(By.CSS_SELECTOR, "dl")
         for row in rows:
@@ -84,7 +86,11 @@ class EventCrawler:
                     key = dt.text.strip()
                     value = dd.text.strip()
 
-                    if "개최기간" in key:
+                    if "개최지역" in key:
+                        local_no = get_local_no(value, self.db)
+                        print("asdf",local_no)
+
+                    elif "개최기간" in key:
                         start_date, end_date, start_time, end_time = parse_period(value)
                     details[key] = value
 
@@ -97,7 +103,7 @@ class EventCrawler:
 
         # 축제 DB에 저장
         columns = [
-            "event_no", "local_id", "category_no", "event_name", "event_address",
+            "event_no", "local_no", "category_no", "event_name", "event_address",
             "event_start_date", "event_end_date",
             "event_start_time", "event_end_time",
             "event_url", "event_price", "event_type",
@@ -106,7 +112,7 @@ class EventCrawler:
 
         values = [
             self.event_counter,        # event_no
-            self.local_counter,        # local_id
+            local_no, 
             self.category_counter,     # category_no
             title, details.get("개최지역"),
             start_date, end_date,
@@ -127,7 +133,7 @@ class EventCrawler:
         """
 
         self.db.execute(sql, values)
-        self.db.commit()
+        # self.db.commit()
 
         # 카운터 증가
         self.event_counter += 1
@@ -177,6 +183,56 @@ def parse_period(period_text: str):
     except Exception as e:
         print("⚠️ 기간 파싱 실패:", e)
         return None, None, None, None
+
+DISTRICT_MAP = {
+    "서울시": "서울특별시",
+    "부산시": "부산광역시",
+    "대구시": "대구광역시",
+    "인천시": "인천광역시",
+    "광주시": "광주광역시",
+    "대전시": "대전광역시",
+    "울산시": "울산광역시",
+    "세종시": "세종특별자치시",
+    "경기도": "경기도",
+    "강원도": "강원도",
+    "충청북도": "충청북도",
+    "충청남도": "충청남도",
+    "전라북도": "전라북도",
+    "전라남도": "전라남도",
+    "경상북도": "경상북도",
+    "경상남도": "경상남도",
+    "제주도": "제주특별자치도",
+}
+
+# 개최 지역 번호 추출    
+def get_local_no(full_name : str, db):
+    local_district, local_name = split_local_name(full_name)
+    print("냠", local_district, local_name)
+    if not local_district or not local_name:
+        return None
+    
+    # 지역 번호 추출 SQL문
+    sql = """
+    SELECT local_no
+    FROM local_govs
+    WHERE local_district LIKE ?
+        AND local_name LIKE ?
+    """
+
+    row = db.fetchone(sql, (f"%{local_district}%", f"%{local_name}%"))
+
+    return row[0] if row else None
+
+def split_local_name(full_name: str):
+    # "서울시 종로구" → ("서울시", "종로구")
+    parts = full_name.split()
+    if len(parts) >= 2:
+        district = DISTRICT_MAP.get(parts[0], parts[0])
+        name = parts[1]
+        return district, name
+    return None, None
+
+
 
 
 if __name__ == "__main__":

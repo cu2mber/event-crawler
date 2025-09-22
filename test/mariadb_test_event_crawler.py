@@ -6,22 +6,23 @@ from crawler.event_crawler import EventCrawler
 load_dotenv(".env")
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
+DB_PASS = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
+DB_JAR = os.getenv("DB_JAR")
 
 def test_crawl_7_events_mariadb():
     # MariaDB 연결(트랜잭션 수동 제어)
-    conn =pymysql.connect(
+    conn = pymysql.connect(
         host=DB_HOST,
         user=DB_USER,
         password=DB_PASS,
         database=DB_NAME,
         charset='utf8mb4',
-        autocommit=False
+        autocommit=False,
     )
     try:
         crawler = EventCrawler()
-        crawler.crawl_events(limit=7)
+        crawler.crawl_events(limit=20)
 
         cursor = conn.cursor()
         rows = crawler.db.fetchall("SELECT COUNT(*) FROM events")
