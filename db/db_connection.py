@@ -47,3 +47,6 @@ class DBManager:
         self.cursor.close()
         self.conn.close()
 
+    def rollback(self):
+        self.conn.rollback()
+

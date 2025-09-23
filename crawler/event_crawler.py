@@ -25,7 +25,6 @@ class EventCrawler:
 
         # 이벤트 번호 카운터 초기화
         self.event_counter = 0
-        self.local_counter = 0
         self.category_counter = 0
 
 
@@ -137,7 +136,6 @@ class EventCrawler:
 
         # 카운터 증가
         self.event_counter += 1
-        self.local_counter += 1
         self.category_counter += 1
 
         # 조회
