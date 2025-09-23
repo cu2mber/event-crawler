@@ -74,6 +74,7 @@ class EventCrawler:
 
         # 상세정보 (dl > dt/dd 구조)
         details = {}
+        category = None
         local_no = None
         start_date, end_date, start_time, end_time = None, None, None, None
         rows = d.find_elements(By.CSS_SELECTOR, "dl")
@@ -87,13 +88,24 @@ class EventCrawler:
 
                     if "개최지역" in key:
                         local_no = get_local_no(value, self.db)
-                        print("asdf",local_no)
 
                     elif "개최기간" in key:
                         start_date, end_date, start_time, end_time = parse_period(value)
+
+                    elif "축제성격" in key:
+                        category = get_category_no(value, self.db)
+                        print(repr(category), type(category))
+
+                        if category is None:
+                            print("asdf")
+                            new_category_no(value, self.db)
+                            category = get_category_no(value, self.db)
+                            print("카테고리 만들었음! : ", category)
                     details[key] = value
 
-                print(f"key : {key}, value : {value}")
+
+
+                    print(f"key : {key}, value : {value}")
             except Exception:
                 continue
 
@@ -111,8 +123,8 @@ class EventCrawler:
 
         values = [
             self.event_counter,        # event_no
-            local_no, 
-            self.category_counter,     # category_no
+            local_no,
+            category,
             title, details.get("개최지역"),
             start_date, end_date,
             start_time, end_time,
@@ -136,7 +148,6 @@ class EventCrawler:
 
         # 카운터 증가
         self.event_counter += 1
-        self.category_counter += 1
 
         # 조회
         rows = self.db.fetchall("SELECT * FROM events")
@@ -191,14 +202,6 @@ DISTRICT_MAP = {
     "대전시": "대전광역시",
     "울산시": "울산광역시",
     "세종시": "세종특별자치시",
-    "경기도": "경기도",
-    "강원도": "강원도",
-    "충청북도": "충청북도",
-    "충청남도": "충청남도",
-    "전라북도": "전라북도",
-    "전라남도": "전라남도",
-    "경상북도": "경상북도",
-    "경상남도": "경상남도",
     "제주도": "제주특별자치도",
 }
 
@@ -221,7 +224,8 @@ def get_local_no(full_name : str, db):
 
     return row[0] if row else None
 
-def split_local_name(full_name: str):
+# 개최지역 -> 시도명, 시군구명으로 나누는 함수
+def split_local_name(full_name : str):
     # "서울시 종로구" → ("서울시", "종로구")
     parts = full_name.split()
     if len(parts) >= 2:
@@ -229,6 +233,31 @@ def split_local_name(full_name: str):
         name = parts[1]
         return district, name
     return None, None
+
+# 카테고리 함수(카테고리 테이블에 카테고리명이 없으면 새로 삽입)
+def get_category_no(category : str, db):
+    
+    sql = """
+    SELECT category_no
+    FROM events_categories
+    WHERE category_name = ?
+    """
+
+    row = db.fetchone(sql, (f"{category}"))
+
+    return row[0] if row else None
+
+# 카테고리 테이블에 카테고리명이 없으면 새로 삽입
+def new_category_no(category : str, db):
+
+    sql = """
+    INSERT INTO events_categories (category_name)
+    VALUES (?)
+    """
+
+    row = db.fetchone(sql, (f"{category}"))
+
+    return row[0] if row else None
 
 
 

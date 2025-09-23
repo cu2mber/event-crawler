@@ -1,7 +1,7 @@
 from crawler.event_crawler import EventCrawler
 from db.db_connection import DBManager
 
-def test_crawl_7_events_mariadb():
+def test_crawl_20_events_mariadb():
     
     conn = DBManager()
 
@@ -20,4 +20,4 @@ def test_crawl_7_events_mariadb():
         crawler.driver.quit()
 
 if __name__ == "__main__":
-    test_crawl_7_events_mariadb()
+    test_crawl_20_events_mariadb()
