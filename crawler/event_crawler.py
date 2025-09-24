@@ -14,7 +14,10 @@ load_dotenv(".env")
 event_url = os.getenv("EVENT_URL")
 
 class EventCrawler:
-    def __init__(self, debug=False, startPage=1):
+    def __init__(self, debug : bool = False):
+
+        self.debug = debug
+
         # 데이터베이스 불러오는 함수
         self.db = DBManager()
         self.driver = webdriver.Chrome()
@@ -29,7 +32,7 @@ class EventCrawler:
 
 
     # n개의 이벤트만 크롤링
-    def crawl_events(self, limit=None, max_pages=None):
+    def crawl_events(self, limit = None, max_pages = None):
         page = 1
         crawled = 0
 
@@ -65,7 +68,7 @@ class EventCrawler:
 
 
     # 상세 페이지에서 데이터 크롤링
-    def scrape_event(self, limit=None):
+    def scrape_event(self):
         d = self.driver
 
         # 타이틀 크롤링
@@ -74,7 +77,7 @@ class EventCrawler:
 
         # 상세정보 (dl > dt/dd 구조)
         details = {}
-        category = None
+        category_no = None
         local_no = None
         start_date, end_date, start_time, end_time = None, None, None, None
         rows = d.find_elements(By.CSS_SELECTOR, "dl")
@@ -93,17 +96,15 @@ class EventCrawler:
                         start_date, end_date, start_time, end_time = parse_period(value)
 
                     elif "축제성격" in key:
-                        category = get_category_no(value, self.db)
-                        print(repr(category), type(category))
+                        category_no = get_category_no(value, self.db)
 
-                        if category is None:
+                        if category_no is None:
                             print("asdf")
-                            new_category_no(value, self.db)
-                            category = get_category_no(value, self.db)
-                            print("카테고리 만들었음! : ", category)
+
+                            category_no = new_category_no(value, self.db)
+
+                            print("카테고리 만들었음! : ", category_no)
                     details[key] = value
-
-
 
                     print(f"key : {key}, value : {value}")
             except Exception:
@@ -124,7 +125,7 @@ class EventCrawler:
         values = [
             self.event_counter,        # event_no
             local_no,
-            category,
+            category_no,
             title, details.get("개최지역"),
             start_date, end_date,
             start_time, end_time,
@@ -234,7 +235,7 @@ def split_local_name(full_name : str):
         return district, name
     return None, None
 
-# 카테고리 함수(카테고리 테이블에 카테고리명이 없으면 새로 삽입)
+# 카테고리 번호 삽입 함수
 def get_category_no(category : str, db):
     
     sql = """
@@ -243,11 +244,11 @@ def get_category_no(category : str, db):
     WHERE category_name = ?
     """
 
-    row = db.fetchone(sql, (f"{category}"))
+    row = db.fetchone(sql, (category,))
 
     return row[0] if row else None
 
-# 카테고리 테이블에 카테고리명이 없으면 새로 삽입
+# 카테고리 테이블에 카테고리명이 없으면 새로 추가
 def new_category_no(category : str, db):
 
     sql = """
@@ -255,12 +256,9 @@ def new_category_no(category : str, db):
     VALUES (?)
     """
 
-    row = db.fetchone(sql, (f"{category}"))
+    db.execute(sql, (category,))
 
-    return row[0] if row else None
-
-
-
+    return get_category_no(category, db)
 
 if __name__ == "__main__":
     crawler = EventCrawler()
