@@ -1,8 +1,10 @@
-from datetime import datetime
-
 from db.db_connection import DBManager
+from db.db_utils import parse_period
+from db.db_utils import get_local_no
+from db.db_utils import get_category_no
+from db.db_utils import new_category_no
+
 from dotenv import load_dotenv
-import re
 import os
 import time
 
@@ -16,7 +18,7 @@ event_url = os.getenv("EVENT_URL")
 class EventCrawler:
     def __init__(self, debug : bool = False):
 
-        self.debug = debug
+        self.debug = debug 
 
         # 데이터베이스 불러오는 함수
         self.db = DBManager()
@@ -74,13 +76,13 @@ class EventCrawler:
         # 타이틀 크롤링
 
         title = d.find_element(By.CLASS_NAME, "view_title").text.strip()
+        rows = d.find_elements(By.CSS_SELECTOR, "dl")
 
         # 상세정보 (dl > dt/dd 구조)
         details = {}
         category_no = None
         local_no = None
         start_date, end_date, start_time, end_time = None, None, None, None
-        rows = d.find_elements(By.CSS_SELECTOR, "dl")
         for row in rows:
             try:
                 dts = row.find_elements(By.TAG_NAME, "dt")
@@ -113,7 +115,33 @@ class EventCrawler:
         # 축제 설명 저장
         description = d.find_element(By.CLASS_NAME, "view_con").text.strip()
 
-        # 축제 DB에 저장
+        columns, values = self.build_event_record(
+            title, details, local_no, category_no,
+            start_date, end_date, start_time, end_time,
+            description
+        )
+
+        sql = f"""
+        INSERT INTO events ({', '.join(columns)})
+        VALUES ({', '.join(['?'] * len(values))})
+        """
+
+        self.db.execute(sql, values)
+        # self.db.commit()
+
+        # 이벤트 카운터 증가
+        self.event_counter += 1
+
+        rows = self.db.fetchall("SELECT * FROM events")
+        print(rows)
+
+        print("✅ DB 저장 완료")
+
+
+    # 축제 레코드 생성
+    def build_event_record(self, title, details, local_no, category_no, 
+                        start_date, end_date, start_time, end_time, description):
+
         columns = [
             "event_no", "local_no", "category_no", "event_name", "event_address",
             "event_start_date", "event_end_date",
@@ -123,9 +151,7 @@ class EventCrawler:
         ]
 
         values = [
-            self.event_counter,        # event_no
-            local_no,
-            category_no,
+            self.event_counter, local_no, category_no,
             title, details.get("개최지역"),
             start_date, end_date,
             start_time, end_time,
@@ -133,132 +159,11 @@ class EventCrawler:
             details.get("문의"), description
         ]
 
-        # "연령제한"이 있으면 추가
         if "연령제한" in details and details["연령제한"]:
             columns.insert(-2, "age_restriction")   # 위치를 원하는 곳으로 조정 가능
             values.insert(-2, details["연령제한"])
 
-        # SQL 문자열 동적 생성
-        sql = f"""
-        INSERT INTO events ({', '.join(columns)})
-        VALUES ({', '.join(['?'] * len(values))})
-        """
-
-        self.db.execute(sql, values)
-        # self.db.commit()
-
-        # 카운터 증가
-        self.event_counter += 1
-
-        # 조회
-        rows = self.db.fetchall("SELECT * FROM events")
-        print(rows)
-
-        print("✅ DB 저장 완료")
-
-# 개최기간 문자열을 파싱해서 (start_date, end_date, start_time, end_time) 반환
-def parse_period(period_text: str):
-    try:
-        # 공백 제거
-        text = period_text.replace(" ", "")
-        # 날짜와 시간 분리
-        date_part, time_part = text.split("|")
-
-        # 날짜 처리
-        start_str, end_str = date_part.split("~")
-        start_str = start_str.rstrip(".")
-        end_str = end_str.rstrip(".")
-        year = start_str.split(".")[0]
-        if len(end_str.split(".")) == 2:
-            end_str = f"{year}.{end_str}"
-        start_date = datetime.strptime(start_str, "%Y.%m.%d").date()
-        end_date = datetime.strptime(end_str, "%Y.%m.%d").date()
-
-        # 시간 처리
-        time_match = re.search(r"(\d{2}:\d{2})~(\d{2}:\d{2})", time_part)
-        if time_match:
-            start_time = datetime.strptime(time_match.group(1), "%H:%M").time()
-            end_time = datetime.strptime(time_match.group(2), "%H:%M").time()
-        else:
-            start_time, end_time = None, None
-
-        # H2 DB 호환용 문자열로 변환(MariaDB에 넣는 것도 문제 없음)
-        start_date_str = start_date.strftime("%Y-%m-%d") if start_date else None
-        end_date_str = end_date.strftime("%Y-%m-%d") if end_date else None
-        start_time_str = start_time.strftime("%H:%M:%S") if start_time else None
-        end_time_str = end_time.strftime("%H:%M:%S") if end_time else None
-
-        return start_date_str, end_date_str, start_time_str, end_time_str
-
-    except Exception as e:
-        print("⚠️ 기간 파싱 실패:", e)
-        return None, None, None, None
-
-DISTRICT_MAP = {
-    "서울시": "서울특별시",
-    "부산시": "부산광역시",
-    "대구시": "대구광역시",
-    "인천시": "인천광역시",
-    "광주시": "광주광역시",
-    "대전시": "대전광역시",
-    "울산시": "울산광역시",
-    "세종시": "세종특별자치시",
-    "제주도": "제주특별자치도",
-}
-
-# 개최 지역 번호 추출    
-def get_local_no(full_name : str, db):
-    local_district, local_name = split_local_name(full_name)
-    print("냠", local_district, local_name)
-    if not local_district or not local_name:
-        return None
-    
-    # 지역 번호 추출 SQL문
-    sql = """
-    SELECT local_no
-    FROM local_govs
-    WHERE local_district LIKE ?
-        AND local_name LIKE ?
-    """
-
-    row = db.fetchone(sql, (f"%{local_district}%", f"%{local_name}%"))
-
-    return row[0] if row else None
-
-# 개최지역 -> 시도명, 시군구명으로 나누는 함수
-def split_local_name(full_name : str):
-    # "서울시 종로구" → ("서울시", "종로구")
-    parts = full_name.split()
-    if len(parts) >= 2:
-        district = DISTRICT_MAP.get(parts[0], parts[0])
-        name = parts[1]
-        return district, name
-    return None, None
-
-# 카테고리 번호 삽입 함수
-def get_category_no(category : str, db):
-    
-    sql = """
-    SELECT category_no
-    FROM events_categories
-    WHERE category_name = ?
-    """
-
-    row = db.fetchone(sql, (category,))
-
-    return row[0] if row else None
-
-# 카테고리 테이블에 카테고리명이 없으면 새로 추가
-def new_category_no(category : str, db):
-
-    sql = """
-    INSERT INTO events_categories (category_name)
-    VALUES (?)
-    """
-
-    db.execute(sql, (category,))
-
-    return get_category_no(category, db)
+        return columns, values
 
 if __name__ == "__main__":
     crawler = EventCrawler()
