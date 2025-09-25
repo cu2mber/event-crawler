@@ -147,8 +147,12 @@ class EventCrawler:
         VALUES ({', '.join(['?'] * len(values))})
         """
 
-        self.db.execute(sql, values)
-        # self.db.commit()
+        try:
+            self.db.execute(sql, values)
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            logging.error(f"DB 저장 실패: {e}")
 
         # 이벤트 카운터 증가
         self.event_counter += 1
