@@ -1,5 +1,6 @@
 from datetime import datetime
 import re
+import logging
 
 # 개최기간 문자열을 파싱해서 (start_date, end_date, start_time, end_time) 반환
 def parse_period(period_text: str):
@@ -54,7 +55,7 @@ DISTRICT_MAP = {
 # 개최 지역 번호 추출    
 def get_local_no(full_name : str, db):
     local_district, local_name = split_local_name(full_name)
-    print("냠", local_district, local_name)
+    logging.debug(f"지역번호 : {local_district}" + f"지역이름 : {local_name}")
     if not local_district or not local_name:
         return None
     
@@ -96,11 +97,8 @@ def get_category_no(category : str, db):
 # 카테고리 테이블에 카테고리명이 없으면 새로 추가
 def new_category_no(category : str, db):
 
-    sql = """
-    INSERT INTO events_categories (category_name)
-    VALUES (?)
-    """
-
+    sql = "INSERT INTO events_categories (category_name) VALUES (?)"
+    
     db.execute(sql, (category,))
 
     return get_category_no(category, db)

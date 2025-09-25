@@ -6,10 +6,20 @@ from db.db_utils import new_category_no
 
 from dotenv import load_dotenv
 import os
-import time
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+import logging
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s : %(message)s',
+    level=logging.DEBUG,
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+)
+
+logging.getLogger("selenium").setLevel(logging.WARNING)
 
 load_dotenv(".env")
 
@@ -25,13 +35,7 @@ class EventCrawler:
         self.driver = webdriver.Chrome()
         self.driver.get(event_url)
 
-        # 페이지가 완전히 로딩되도록 3초동안 기다림
-        time.sleep(3)
-
-        # 이벤트 번호 카운터 초기화
         self.event_counter = 0
-        self.category_counter = 0
-
 
     # n개의 이벤트만 크롤링
     def crawl_events(self, limit = None, max_pages = None):
@@ -39,35 +43,54 @@ class EventCrawler:
         crawled = 0
 
         while True:
-            # 리스트 페이지 직접 이동 (새 DOM 보장)
-            if page == 1:
-                url = event_url   # 기본 URL (pCurrentPage 없음)
-            else:
-                url = f"{event_url}?pCurrentPage={page}"
-            self.driver.get(url)
-            time.sleep(2)
-
-            # 현재 페이지의 모든 이벤트 링크를 문자열로 수집
-            event_links = [
-                link.get_attribute("href")
-                for link in self.driver.find_elements(By.CLASS_NAME, "go")
-            ]
-
+            # 현재 페이지에서 이벤트 링크 가져오기
+            event_links = self.get_event_links(page)
             if not event_links:
-                break  # 더 이상 페이지 없음
+                break # 더 이상 페이지 없음
 
-            for ev_url in event_links:
-                self.driver.get(ev_url)   # 상세 페이지 직접 이동
-                self.scrape_event()
-                crawled += 1
+            processed = self.process_event_links(event_links, limit, crawled)
+            crawled += processed
 
-                if limit and crawled >= limit:
-                    return  # 크롤링 종료
+            if limit and crawled >= limit:
+                break
 
             page += 1
             if max_pages and page > max_pages:
                 break
 
+    # 페이지 이동 후 이벤트 상세 링크 리스트 반환
+    def get_event_links(self, page : int) -> list[str]:
+        if page == 1:
+            url = event_url   # 기본 URL (pCurrentPage 없음)
+        else:
+            url = f"{event_url}?pCurrentPage={page}"
+        self.driver.get(url)
+
+        try:
+            WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "go"))
+            )
+            return [
+                link.get_attribute("href")
+                for link in self.driver.find_elements(By.CLASS_NAME, "go")
+            ]
+
+        except TimeoutError:
+            return []
+        
+    
+    # 이벤트 상세 페이지 크롤링 및 처리한 개수 반환
+    def process_event_links(self, event_links : list[str], limit : int, crawled : int) -> int:
+        count = 0
+
+        for ev_url in event_links:
+            if limit and crawled + count >= limit:
+                break
+            self.driver.get(ev_url)
+            self.scrape_event()
+            count += 1
+
+        return count
 
     # 상세 페이지에서 데이터 크롤링
     def scrape_event(self):
@@ -101,11 +124,9 @@ class EventCrawler:
                         category_no = get_category_no(value, self.db)
 
                         if category_no is None:
-                            print("asdf")
-
                             category_no = new_category_no(value, self.db)
 
-                            print("카테고리 만들었음! : ", category_no)
+                            logging.debug(f"카테고리 만들었음! : {category_no}")
                     details[key] = value
 
                     print(f"key : {key}, value : {value}")
@@ -133,9 +154,9 @@ class EventCrawler:
         self.event_counter += 1
 
         rows = self.db.fetchall("SELECT * FROM events")
-        print(rows)
+        logging.info(rows)
 
-        print("✅ DB 저장 완료")
+        logging.info("✅ DB 저장 완료")
 
 
     # 축제 레코드 생성
