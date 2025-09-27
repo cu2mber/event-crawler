@@ -1,7 +1,14 @@
 from dotenv import load_dotenv
 import os
 import jaydebeapi
+import logging
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s : %(message)s',
+    level=logging.DEBUG,
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+)
 
+logging.getLogger("selenium").setLevel(logging.WARNING)
 
 class DBManager:
 
@@ -29,8 +36,9 @@ class DBManager:
             else:
                 self.cursor.execute(query)
             return self.cursor
+        # 스택 트레이스까지 보고싶을 때
         except Exception as e:
-            print("⚠️ SQL 실행 오류:", e)
+            logging.error("⚠️ SQL 실행 오류", exc_info=True)
             return None
 
     def fetchall(self, query, params=None):
@@ -47,4 +55,7 @@ class DBManager:
     def close(self):
         self.cursor.close()
         self.conn.close()
+
+    def rollback(self):
+        self.conn.rollback()
 
