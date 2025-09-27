@@ -1,6 +1,10 @@
 from datetime import datetime
 import re
 import logging
+import yaml
+
+with open('resources/district_map.yaml', encoding='UTF-8') as f:
+    district_map = yaml.full_load(f)
 
 # 개최기간 문자열을 파싱해서 (start_date, end_date, start_time, end_time) 반환
 def parse_period(period_text: str):
@@ -40,18 +44,6 @@ def parse_period(period_text: str):
         print("⚠️ 기간 파싱 실패:", e)
         return None, None, None, None
 
-DISTRICT_MAP = {
-    "서울시": "서울특별시",
-    "부산시": "부산광역시",
-    "대구시": "대구광역시",
-    "인천시": "인천광역시",
-    "광주시": "광주광역시",
-    "대전시": "대전광역시",
-    "울산시": "울산광역시",
-    "세종시": "세종특별자치시",
-    "제주도": "제주특별자치도",
-}
-
 # 개최 지역 번호 추출    
 def get_local_no(full_name : str, db):
     local_district, local_name = split_local_name(full_name)
@@ -76,7 +68,7 @@ def split_local_name(full_name : str):
     # "서울시 종로구" → ("서울시", "종로구")
     parts = full_name.split()
     if len(parts) >= 2:
-        district = DISTRICT_MAP.get(parts[0], parts[0])
+        district = district_map.get(parts[0], parts[0])
         name = parts[1]
         return district, name
     return None, None

@@ -168,20 +168,31 @@ class EventCrawler:
                         start_date, end_date, start_time, end_time, description):
 
         columns = [
-            "event_no", "local_no", "category_no", "event_name", "event_address",
-            "event_start_date", "event_end_date",
-            "event_start_time", "event_end_time",
-            "event_url", "event_price", "event_type",
-            "event_inquiry", "event_description"
+            "event_no",
+            "local_no",
+            "category_no",
+            "event_name",
+            "event_address",
+            "event_start_date", "event_end_date", "event_start_time", "event_end_time",
+            "event_url",
+            "event_price",
+            "event_type",
+            "event_inquiry",
+            "event_description"
         ]
 
         values = [
-            self.event_counter, local_no, category_no,
-            title, details.get("개최지역"),
-            start_date, end_date,
-            start_time, end_time,
-            details.get("관련 누리집"), details.get("요금"), details.get("축제성격"),
-            details.get("문의"), description
+            self.event_counter,
+            local_no,
+            category_no,
+            title,
+            details.get("개최지역"),
+            start_date, end_date, start_time, end_time,
+            details.get("관련 누리집"),
+            details.get("요금"),
+            details.get("축제성격"),
+            details.get("문의"),
+            description
         ]
 
         if "연령제한" in details and details["연령제한"]:
