@@ -6,6 +6,7 @@ from crawler.event_crawler import EventCrawler
 load_dotenv(".env")
 event_url = os.getenv("EVENT_URL")
 
+# h2 database
 # pytest로 통합 테스트. 7개 지역 축제 크롤링
 def test_crawl_7_events():
     crawler = EventCrawler()
