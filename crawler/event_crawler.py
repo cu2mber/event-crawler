@@ -6,6 +6,7 @@ from db.db_utils import new_category_no
 
 from dotenv import load_dotenv
 import os
+import time
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -99,6 +100,10 @@ class EventCrawler:
         # 타이틀 크롤링
 
         title = d.find_element(By.CLASS_NAME, "view_title").text.strip()
+        existing = self.db.fetchall("SELECT 1 FROM events WHERE event_title = ?", (title,))
+        if existing:
+            logging.info(f"이미 크롤링된 행사이므로 건너뜀: {title}")
+            return
         rows = d.find_elements(By.CSS_SELECTOR, "dl")
 
         # 상세정보 (dl > dt/dd 구조)
@@ -121,6 +126,8 @@ class EventCrawler:
                         start_date, end_date, start_time, end_time = parse_period(value)
 
                     elif "축제성격" in key:
+                        if not value:
+                            continue
                         category_no = get_category_no(value, self.db)
 
                         if category_no is None:
@@ -171,14 +178,16 @@ class EventCrawler:
             "event_no",
             "local_no",
             "category_no",
-            "event_name",
+            "event_title",
             "event_address",
             "event_start_date", "event_end_date", "event_start_time", "event_end_time",
             "event_url",
-            "event_price",
-            "event_type",
+            "event_spot",
+            "event_fee",
+            "event_host",
             "event_inquiry",
-            "event_description"
+            "event_description",
+            "created_at"
         ]
 
         values = [
@@ -189,15 +198,13 @@ class EventCrawler:
             details.get("개최지역"),
             start_date, end_date, start_time, end_time,
             details.get("관련 누리집"),
+            details.get("축제장소"),
             details.get("요금"),
-            details.get("축제성격"),
+            details.get("주최/주관기관"),
             details.get("문의"),
-            description
+            description,
+            time.strftime("%Y-%m-%d %H:%M:%S")
         ]
-
-        if "연령제한" in details and details["연령제한"]:
-            columns.insert(-2, "age_restriction")   # 위치를 원하는 곳으로 조정 가능
-            values.insert(-2, details["연령제한"])
 
         return columns, values
 

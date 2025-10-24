@@ -4,7 +4,7 @@ def main():
     crawler = EventCrawler(debug=True)
 
     try:
-        crawler.crawl_events(limit=5, max_pages=2)
+        crawler.crawl_events(limit=10, max_pages=2)
 
     finally:
         crawler.driver.quit()
