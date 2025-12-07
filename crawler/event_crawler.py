@@ -25,8 +25,10 @@ logging.getLogger("selenium").setLevel(logging.WARNING)
 load_dotenv(".env")
 
 event_url = os.getenv("EVENT_URL")
+base_url = "https://www.mcst.go.kr"
 
 class EventCrawler:
+
     def __init__(self, debug : bool = False):
 
         self.debug = debug 
@@ -37,6 +39,7 @@ class EventCrawler:
         self.driver.get(event_url)
 
         self.event_counter = 0
+
 
     # n개의 이벤트만 크롤링
     def crawl_events(self, limit = None, max_pages = None):
@@ -98,13 +101,19 @@ class EventCrawler:
         d = self.driver
 
         # 타이틀 크롤링
-
         title = d.find_element(By.CLASS_NAME, "view_title").text.strip()
         existing = self.db.fetchall("SELECT 1 FROM events WHERE event_title = ?", (title,))
         if existing:
             logging.info(f"이미 크롤링된 행사이므로 건너뜀: {title}")
             return
         rows = d.find_elements(By.CSS_SELECTOR, "dl")
+
+        # 행사 이미지
+        event_img = d.find_element(By.CSS_SELECTOR, "culture_view img")
+        print("event_img : ", event_img)
+        event_src = event_img.get_attribute("src")
+        print("event_src : ", event_src)
+        event_image_url = base_url + event_src
 
         # 상세정보 (dl > dt/dd 구조)
         details = {}
@@ -146,7 +155,7 @@ class EventCrawler:
         columns, values = self.build_event_record(
             title, details, local_no, category_no,
             start_date, end_date, start_time, end_time,
-            description
+            description, event_image_url
         )
 
         sql = f"""
@@ -172,7 +181,7 @@ class EventCrawler:
 
     # 축제 레코드 생성
     def build_event_record(self, title, details, local_no, category_no, 
-                        start_date, end_date, start_time, end_time, description):
+                        start_date, end_date, start_time, end_time, description, event_image_url):
 
         columns = [
             "event_no",
@@ -187,6 +196,7 @@ class EventCrawler:
             "event_host",
             "event_inquiry",
             "event_description",
+            "event_image_url",
             "created_at"
         ]
 
@@ -203,6 +213,7 @@ class EventCrawler:
             details.get("주최/주관기관"),
             details.get("문의"),
             description,
+            event_image_url,
             time.strftime("%Y-%m-%d %H:%M:%S")
         ]
 

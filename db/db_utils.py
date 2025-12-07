@@ -2,8 +2,14 @@ from datetime import datetime
 import re
 import logging
 import yaml
+import pathlib
 
-with open('resources/district_map.yaml', encoding='UTF-8') as f:
+current_dir = pathlib.Path(__file__).parent
+
+file_path = current_dir.parent / 'resources' / 'district_map.yaml'
+
+
+with open(file_path, encoding='UTF-8') as f:
     district_map = yaml.full_load(f)
 
 # 개최기간 문자열을 파싱해서 (start_date, end_date, start_time, end_time) 반환

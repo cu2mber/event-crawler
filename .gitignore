@@ -133,3 +133,5 @@ results/
 .env
 
 *.sql
+
+.idea/
