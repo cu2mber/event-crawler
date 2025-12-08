@@ -2,6 +2,8 @@ import os
 import sys
 from dotenv import load_dotenv
 
+from db.db_setup import is_local_govs_data_exists, load_local_govs_from_csv
+
 # 현재 실행 중인 파일(main.py)의 절대 경로를 얻음
 current_file_path = os.path.abspath(__file__)
 # 스크립트가 위치한 디렉토리(프로젝트 루트) 계산
@@ -20,6 +22,15 @@ def main():
     crawler = EventCrawler(debug=True)
 
     try:
+        db_manager = crawler.db
+
+        if not is_local_govs_data_exists(db_manager):
+            print("local_govs 초기 데이터가 없습니다. CSV 파일로부터 데이터를 로드합니다.")
+            csv_file_path = 'resources/국토교통부_전국 법정동_20250807.csv'
+            load_local_govs_from_csv(db_manager, csv_file_path)
+            print("local_govs 초기 데이터 로드 완료")
+        else:
+            print("local_govs 데이터가 이미 존재합니다. 초기 데이터 로드를 건너뜁니다.")
         crawler.crawl_events(limit=10, max_pages=2)
 
     finally:

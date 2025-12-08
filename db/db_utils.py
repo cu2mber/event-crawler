@@ -47,7 +47,7 @@ def parse_period(period_text: str):
         return start_date_str, end_date_str, start_time_str, end_time_str
 
     except Exception as e:
-        print("⚠️ 기간 파싱 실패:", e)
+        print("기간 파싱 실패:", e)
         return None, None, None, None
 
 # 개최 지역 번호 추출    
