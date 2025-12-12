@@ -19,10 +19,6 @@ jobs:
         with:
           ref: dev
 
-      # ⭐ 1. 작업 디렉토리를 event-crawler 폴더로 변경
-      - name: Change Working Directory
-        run: cd event-crawler
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
