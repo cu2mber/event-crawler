@@ -16,7 +16,7 @@ env:
 
 jobs:
   build:
-    uses: cu2mber/cu2mber-common-infra/.github/workflows/event-crawler-publish.yml@dev
+    uses: cu2mber/cu2mber-common-infra/.github/workflows/event-crawler-publish.yml@main
     with:
       image-name: event-crawler
-      use-github-token: true  # 필요하면 true, 아니면 생략 or false
+      use-github-token: true
