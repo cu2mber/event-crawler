@@ -1,0 +1,22 @@
+name: CI - Build & Push Event Crawler to GHCR
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ dev ]
+
+permissions:
+  actions: read
+  contents: read
+  packages: write  # GHCR 푸시용 권한
+
+env:
+  GITHUB_ACTOR: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    uses: cu2mber/cu2mber-common-infra/.github/workflows/event-crawler-publish.yml@dev
+    with:
+      image-name: event-crawler
+      use-github-token: true  # 필요하면 true, 아니면 생략 or false
