@@ -38,7 +38,7 @@ class DBManager:
             return self.cursor
         # 스택 트레이스까지 보고싶을 때
         except Exception as e:
-            logging.error("⚠️ SQL 실행 오류", exc_info=True)
+            logging.error("SQL 실행 오류", exc_info=True)
             return None
 
     def fetchall(self, query, params=None):

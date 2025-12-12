@@ -2,8 +2,14 @@ from datetime import datetime
 import re
 import logging
 import yaml
+import pathlib
 
-with open('resources/district_map.yaml', encoding='UTF-8') as f:
+current_dir = pathlib.Path(__file__).parent
+
+file_path = current_dir.parent / 'resources' / 'district_map.yaml'
+
+
+with open(file_path, encoding='UTF-8') as f:
     district_map = yaml.full_load(f)
 
 # 개최기간 문자열을 파싱해서 (start_date, end_date, start_time, end_time) 반환
@@ -41,7 +47,7 @@ def parse_period(period_text: str):
         return start_date_str, end_date_str, start_time_str, end_time_str
 
     except Exception as e:
-        print("⚠️ 기간 파싱 실패:", e)
+        print("기간 파싱 실패:", e)
         return None, None, None, None
 
 # 개최 지역 번호 추출    
