@@ -45,6 +45,8 @@ class EventCrawler:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
 
         # 드라이버 경로 설정 (APT 설치 경로)
         chrome_service = Service(executable_path="/usr/bin/chromedriver")

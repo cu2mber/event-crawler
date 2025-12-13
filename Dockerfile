@@ -15,7 +15,14 @@ RUN apt-get update && \
         libatk1.0-0 \
         libgtk-3-0 \
         libappindicator3-1 \
-        xdg-utils && \
+        xdg-utils \
+        libgconf-2-4 \
+        libwoff1 \
+        libttf-dejavu \
+        libgdk-pixbuf2.0-0 \
+        libharfbuzz-icu7 \
+        libcurl4 \
+        libjpeg62-turbo && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
