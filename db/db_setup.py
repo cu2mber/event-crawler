@@ -19,7 +19,7 @@ def load_local_govs_from_csv(db_manager: DBManager, csv_path : str):
                 data_to_insert.append((row[1], row[2]))
 
         # 파일 읽기 끝난 후, 이제 DB 작업 시작
-        sql = "INSERT IGNORE INTO localgov.local_govs (local_district, local_name) VALUES (%s, %s)"
+        sql = "INSERT IGNORE INTO localgov.local_govs (local_district, local_name) VALUES (?, ?)"
 
         cursor = db_manager.conn.cursor()
         cursor.executemany(sql, data_to_insert)
