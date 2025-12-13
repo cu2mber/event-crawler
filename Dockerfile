@@ -9,8 +9,13 @@ RUN apt-get update && \
         chromium \
         libnss3 \
         libxss1 \
+        libgbm-dev \
         fonts-liberation \
-        libgbm-dev && \
+        libasound2 \
+        libatk1.0-0 \
+        libgtk-3-0 \
+        libappindicator3-1 \
+        xdg-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
