@@ -16,13 +16,12 @@ RUN apt-get update && \
         libgtk-3-0 \
         libappindicator3-1 \
         xdg-utils \
-        libgconf-2-4 \
         libwoff1 \
-        libttf-dejavu \
+        fonts-dejavu \
         libgdk-pixbuf2.0-0 \
-        libharfbuzz-icu7 \
+        libharfbuzz-icu \
         libcurl4 \
-        libjpeg62-turbo && \
+        libjpeg-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
