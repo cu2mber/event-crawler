@@ -1,4 +1,4 @@
-FROM openjdk:21-bookworm
+FROM eclipse-temurin:17-jdk-bullseye
 
 LABEL authors="yeong"
 
