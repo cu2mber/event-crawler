@@ -9,8 +9,6 @@ RUN apt-get update && \
         chromium \
         libnss3 \
         libxss1 \
-        libappindicator1 \
-        libindicator7 \
         fonts-liberation \
         libgbm-dev && \
     apt-get clean && \
