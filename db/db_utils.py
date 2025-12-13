@@ -60,7 +60,7 @@ def get_local_no(full_name : str, db):
     # 지역 번호 추출 SQL문
     sql = """
     SELECT local_no
-    FROM local_govs
+    FROM localgov.local_govs
     WHERE local_district LIKE ?
         AND local_name LIKE ?
     """
