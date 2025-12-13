@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/h2-2.3.232.jar
 lib64/
 parts/
 sdist/
