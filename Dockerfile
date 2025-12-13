@@ -1,4 +1,4 @@
-FROM openjdk:21-jdk-bullseye
+FROM openjdk:21
 
 LABEL authors="yeong"
 
