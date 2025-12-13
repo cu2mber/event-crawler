@@ -3,7 +3,7 @@ FROM debian:bullseye
 LABEL authors="yeong"
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y --no-install-recommends --fix-missing \
         python3 python3-pip \
         wget gnupg curl \
         openjdk-17-jdk \
