@@ -1,4 +1,4 @@
-FROM openjdk:21
+FROM openjdk:21-bookworm
 
 LABEL authors="yeong"
 
