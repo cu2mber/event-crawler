@@ -13,8 +13,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /usr/bin/chromium-driver /usr/bin/chromedriver
-
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 WORKDIR /app
