@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 8084
 # CMD 명령은 파이썬을 사용합니다.
-CMD ["python", "main.py"]
+CMD ["python3", "main.py"]
