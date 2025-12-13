@@ -84,7 +84,7 @@ def get_category_no(category : str, db):
     
     sql = """
     SELECT category_no
-    FROM events_categories
+    FROM event.events_categories
     WHERE category_name = ?
     """
 
@@ -95,7 +95,7 @@ def get_category_no(category : str, db):
 # 카테고리 테이블에 카테고리명이 없으면 새로 추가
 def new_category_no(category : str, db):
 
-    sql = "INSERT INTO events_categories (category_name) VALUES (?)"
+    sql = "INSERT INTO event.events_categories (category_name) VALUES (?)"
     
     db.execute(sql, (category,))
 

@@ -123,7 +123,7 @@ class EventCrawler:
 
         # 타이틀 크롤링
         title = d.find_element(By.CLASS_NAME, "view_title").text.strip()
-        existing = self.db.fetchall("SELECT 1 FROM events WHERE event_title = ?", (title,))
+        existing = self.db.fetchall("SELECT 1 FROM event.events WHERE event_title = ?", (title,))
         if existing:
             logging.info(f"이미 크롤링된 행사이므로 건너뜀: {title}")
             return
@@ -180,7 +180,7 @@ class EventCrawler:
         )
 
         sql = f"""
-        INSERT INTO events ({', '.join(columns)})
+        INSERT INTO event.events ({', '.join(columns)})
         VALUES ({', '.join(['?'] * len(values))})
         """
 
@@ -194,7 +194,7 @@ class EventCrawler:
         # 이벤트 카운터 증가
         self.event_counter += 1
 
-        rows = self.db.fetchall("SELECT * FROM events")
+        rows = self.db.fetchall("SELECT * FROM event.events")
         logging.info(rows)
 
         logging.info("✅ DB 저장 완료")
