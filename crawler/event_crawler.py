@@ -37,8 +37,6 @@ class EventCrawler:
 
         # 데이터베이스 불러오는 함수
         self.db = DBManager()
-        self.driver = webdriver.Chrome()
-        self.driver.get(event_url)
 
         self.event_counter = 0
 
@@ -52,6 +50,7 @@ class EventCrawler:
         chrome_service = Service(executable_path="/usr/bin/chromedriver")
 
         self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+        self.driver.get(event_url)
 
 
     # n개의 이벤트만 크롤링
