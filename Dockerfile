@@ -6,29 +6,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         python3 python3-pip \
         wget gnupg curl \
+        openjdk-17-jdk \
+        chromium chromium-driver \
         libnss3 libxss1 libgbm-dev fonts-liberation libasound2 libatk1.0-0 libgtk-3-0 libappindicator3-1 \
         xdg-utils libwoff1 fonts-dejavu libgdk-pixbuf2.0-0 libharfbuzz-icu0 libcurl4 libjpeg-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends openjdk-17-jdk && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /etc/apt/keyrings
-
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-archive-keyring.gpg
-
-RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/google-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-
-RUN apt-get update && \
-    apt-get install -y google-chrome-stable && \
-    ln -s /usr/bin/google-chrome /usr/bin/chromium-browser && \
-    ln -s /usr/bin/google-chrome /usr/bin/chromium && \
-    ln -s /usr/bin/google-chrome /usr/bin/chromedriver
-
+RUN ln -s /usr/bin/chromium-driver /usr/bin/chromedriver
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
