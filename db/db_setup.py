@@ -4,19 +4,21 @@ from db.db_connection import DBManager
 
 # CSV 파일을 읽어 localgov.local_govs 테이블에 지자체 정보를 삽입하는 함수
 def load_local_govs_from_csv(db_manager: DBManager, csv_path : str):
+    data_to_insert = []
     try:
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         full_csv_path = os.path.join(project_root, csv_path)
 
         # 지자체 데이터 추출
-        data_to_insert = []
         with open(full_csv_path, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
             next(reader) # 헤더 스킵
 
-        for row in reader:
-            data_to_insert.append((row[1], row[2]))
+            # for 루프를 with 블록 안으로 이동
+            for row in reader:
+                data_to_insert.append((row[1], row[2]))
 
+        # 파일 읽기 끝난 후, 이제 DB 작업 시작
         sql = "INSERT IGNORE INTO localgov.local_govs (local_district, local_name) VALUES (%s, %s)"
 
         cursor = db_manager.conn.cursor()
