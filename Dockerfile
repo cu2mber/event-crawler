@@ -1,4 +1,4 @@
-FROM openjdk:21-slim-jdk
+FROM openjdk:21-slim
 
 LABEL authors="yeong"
 
