@@ -7,6 +7,7 @@ from db.db_utils import new_category_no
 from dotenv import load_dotenv
 import os
 import time
+import platform
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -49,7 +50,13 @@ class EventCrawler:
         chrome_options.add_argument("--window-size=1920,1080")
 
         # 드라이버 경로 설정 (APT 설치 경로)
-        chrome_service = Service(executable_path="/usr/bin/chromedriver")
+        # 드라이버 경로 설정 (OS에 따라 분기)
+        if platform.system() == "Linux":
+            # Docker/EC2 환경
+            chrome_service = Service(executable_path="/usr/bin/chromedriver")
+        else:
+            # Windows/Mac 환경 (경로를 비워서 Selenium Manager에게 위임)
+            chrome_service = Service()
 
         self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
         self.driver.get(event_url)
@@ -123,7 +130,7 @@ class EventCrawler:
         rows = d.find_elements(By.CSS_SELECTOR, "dl")
 
         # 행사 이미지
-        event_img = d.find_element(By.CSS_SELECTOR, "culture_view img")
+        event_img = d.find_element(By.CSS_SELECTOR, ".culture_view img")
         print("event_img : ", event_img)
         event_src = event_img.get_attribute("src")
         print("event_src : ", event_src)
