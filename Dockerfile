@@ -19,7 +19,7 @@ RUN apt-get update && \
         libwoff1 \
         fonts-dejavu \
         libgdk-pixbuf2.0-0 \
-        libharfbuzz-icu \
+        libharfbuzz-icu0 \
         libcurl4 \
         libjpeg-dev && \
     apt-get clean && \
