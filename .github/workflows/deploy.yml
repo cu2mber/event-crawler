@@ -1,4 +1,4 @@
-name: CI - Build & Push Gateway Service to GHCR
+name: CI - Build & Push Event Crawler to GHCR
 
 on:
   workflow_dispatch:
