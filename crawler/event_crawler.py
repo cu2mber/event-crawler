@@ -12,6 +12,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 import logging
 logging.basicConfig(
@@ -39,6 +41,17 @@ class EventCrawler:
         self.driver.get(event_url)
 
         self.event_counter = 0
+
+        # Headless 옵션 설정
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        # 드라이버 경로 설정 (APT 설치 경로)
+        chrome_service = Service(executable_path="/usr/bin/chromedriver")
+
+        self.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
 
     # n개의 이벤트만 크롤링

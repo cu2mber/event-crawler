@@ -3,11 +3,22 @@ FROM eclipse-temurin:21-jdk
 LABEL authors="yeong"
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3.10 python3-pip && \
+    apt-get install -y --no-install-recommends \
+        python3.10 python3-pip \
+        chromium-driver \
+        chromium \
+        libnss3 \
+        libxss1 \
+        libappindicator1 \
+        libindicator7 \
+        fonts-liberation \
+        libgbm-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python
+
+ENV PATH="${PATH}:/usr/bin/"
 
 WORKDIR /app
 COPY requirements.txt .
