@@ -11,7 +11,7 @@ RUN apt-get update && \
         libxss1 \
         libgbm-dev \
         fonts-liberation \
-        libasound2 \
+        libasound2t64 \
         libatk1.0-0 \
         libgtk-3-0 \
         libappindicator3-1 \
