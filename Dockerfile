@@ -1,12 +1,17 @@
-FROM eclipse-temurin:17-jdk-bullseye
+FROM debian:bullseye
 
 LABEL authors="yeong"
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        # 필수 도구
         python3 python3-pip \
-        wget \
-        gnupg \
+        wget gnupg curl \
+        apt-transport-https ca-certificates \
+        && curl -fsSL https://packages.adoptium.net/artifactory/api/apt/public/gpg/DEB_KEY | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg \
+        && echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/api/apt/public bullseye main" > /etc/apt/sources.list.d/adoptium.list \
+        && apt-get update \
+        && apt-get install -y temurin-17-jdk \
         libnss3 libxss1 libgbm-dev fonts-liberation libasound2t64 libatk1.0-0 libgtk-3-0 libappindicator3-1 \
         xdg-utils libwoff1 fonts-dejavu libgdk-pixbuf2.0-0 libharfbuzz-icu0 libcurl4 libjpeg-dev && \
     apt-get clean && \
@@ -21,7 +26,6 @@ RUN apt-get update && \
     ln -s /usr/bin/google-chrome /usr/bin/chromium-browser && \
     ln -s /usr/bin/google-chrome /usr/bin/chromium && \
     ln -s /usr/bin/google-chrome /usr/bin/chromedriver
-
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
